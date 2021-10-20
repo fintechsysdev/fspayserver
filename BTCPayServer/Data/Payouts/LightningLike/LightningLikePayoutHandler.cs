@@ -11,6 +11,7 @@ using BTCPayServer.Validation;
 using LNURL;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.DataEncoders;
 
 namespace BTCPayServer.Data.Payouts.LightningLike
 {
@@ -52,7 +53,9 @@ namespace BTCPayServer.Data.Payouts.LightningLike
 
         public async Task<(IClaimDestination destination, string error)> ParseClaimDestination(PaymentMethodId paymentMethodId, string destination, bool validate)
         {
-            destination = destination.Trim();
+            var parts = destination.Split("_");
+            var nonce = parts.Length == 2 ? parts[1]: Encoders.Base64.EncodeData(RandomUtils.GetBytes(5));
+            destination = parts[0].Trim();
             var network = _btcPayNetworkProvider.GetNetwork<BTCPayNetwork>(paymentMethodId.CryptoCode);
             try
             {
@@ -69,7 +72,7 @@ namespace BTCPayServer.Data.Payouts.LightningLike
 
                 if (lnurlTag.Equals("payRequest", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return (new LNURLPayClaimDestinaton(destination), null);
+                    return (new LNURLPayClaimDestinaton(destination, nonce), null);
                 }
             }
             catch (FormatException)

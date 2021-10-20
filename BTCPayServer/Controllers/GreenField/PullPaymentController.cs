@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using PayoutData = BTCPayServer.Client.Models.PayoutData;
 
 namespace BTCPayServer.Controllers.GreenField
 {
@@ -203,7 +204,7 @@ namespace BTCPayServer.Controllers.GreenField
             return base.Ok(ToModel(payout, cd));
         }
 
-        private Client.Models.PayoutData ToModel(Data.PayoutData p, CurrencyData cd)
+        private async Task<PayoutData> ToModel(Data.PayoutData p, CurrencyData cd)
         {
             var blob = p.GetBlob(_serializerSettings);
             var model = new Client.Models.PayoutData()
@@ -216,7 +217,7 @@ namespace BTCPayServer.Controllers.GreenField
                 Revision = blob.Revision,
                 State = p.State
             };
-            model.Destination = blob.Destination;
+            model.Destination = await p.GetNormalizedPayoutDestination(_payoutHandlers);
             model.PaymentMethod = p.PaymentMethodId;
             return model;
         }

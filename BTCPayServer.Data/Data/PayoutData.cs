@@ -34,7 +34,8 @@ namespace BTCPayServer.Data
                 .Property(o => o.State)
                 .HasConversion<string>();
             builder.Entity<PayoutData>()
-                .HasIndex(o => o.Destination);
+                .HasIndex(o => o.Destination)
+                .IsUnique();
             builder.Entity<PayoutData>()
                 .HasIndex(o => o.State);
             builder.Entity<PayoutData>()

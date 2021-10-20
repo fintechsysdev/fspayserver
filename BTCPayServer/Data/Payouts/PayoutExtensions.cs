@@ -58,5 +58,26 @@ namespace BTCPayServer.Data
             return payoutHandlers.SelectMany(handler => handler.GetSupportedPaymentMethods())
                 .Where(id => paymentMethodIds is null || paymentMethodIds.Contains(id));
         }
+
+        public static async Task<string> GetNormalizedPayoutDestination(this PayoutData payoutData,
+            IEnumerable<IPayoutHandler> handlers)
+        {
+            var pmi = payoutData.GetPaymentMethodId();
+            if (pmi is null)
+            {
+                return payoutData.Destination;
+            }
+            var handler = handlers.FindPayoutHandler(pmi);
+            if (handler is null)
+            {
+                return payoutData.Destination;
+            }
+            var destination = await handler.ParseClaimDestination(pmi, payoutData.Destination, false);
+            if (destination.destination is null)
+            {
+                return payoutData.Destination;
+            }
+            return destination.destination.ToNormalizedString();
+        }
     }
 }

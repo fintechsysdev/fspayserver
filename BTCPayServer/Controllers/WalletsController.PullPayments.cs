@@ -419,6 +419,9 @@ namespace BTCPayServer.Controllers
             {
                 var ppBlob = item.PullPayment.GetBlob();
                 var payoutBlob = item.Payout.GetBlob(_jsonSerializerSettings);
+                var pmi = item.Payout.GetPaymentMethodId();
+                var handler = _payoutHandlers
+                    .FindPayoutHandler(pmi);
                 var m = new PayoutsModel.PayoutModel
                 {
                     PullPaymentId = item.PullPayment.Id,
@@ -426,10 +429,9 @@ namespace BTCPayServer.Controllers
                     Date = item.Payout.Date,
                     PayoutId = item.Payout.Id,
                     Amount = _currencyTable.DisplayFormatCurrency(payoutBlob.Amount, ppBlob.Currency),
-                    Destination = payoutBlob.Destination
+                    Destination = await item.Payout.GetNormalizedPayoutDestination(_payoutHandlers)
                 };
-                var handler = _payoutHandlers
-                    .FindPayoutHandler(item.Payout.GetPaymentMethodId());
+               
                 var proofBlob = handler?.ParseProof(item.Payout);
                 m.ProofLink = proofBlob?.Link;
                 vm.Payouts.Add(m);

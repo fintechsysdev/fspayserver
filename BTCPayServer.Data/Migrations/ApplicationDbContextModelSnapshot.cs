@@ -530,7 +530,8 @@ namespace BTCPayServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Destination");
+                    b.HasIndex("Destination")
+                        .IsUnique();
 
                     b.HasIndex("PullPaymentDataId");
 

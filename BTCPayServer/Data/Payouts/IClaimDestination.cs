@@ -7,5 +7,10 @@ namespace BTCPayServer.Data
     {
         public string? Id { get; }
         decimal? Amount { get; }
+
+        public virtual string? ToNormalizedString()
+        {
+            return ToString();
+        }
     }
 }

@@ -59,8 +59,11 @@ namespace BTCPayServer.Controllers
                            {
                                Entity = o,
                                Blob = o.GetBlob(_serializerSettings),
-                               ProofBlob = _payoutHandlers.FindPayoutHandler(o.GetPaymentMethodId())?.ParseProof(o)
+                               ProofBlob = _payoutHandlers.FindPayoutHandler(o.GetPaymentMethodId())?.ParseProof(o),
+                               Destination = o.GetNormalizedPayoutDestination(_payoutHandlers)
                            });
+
+            await Task.WhenAll(payouts.Select(arg => arg.Destination));
             var cd = _currencyNameTable.GetCurrencyData(blob.Currency, false);
             var totalPaid = payouts.Where(p => p.Entity.State != PayoutState.Cancelled).Select(p => p.Blob.Amount).Sum();
             var amountDue = blob.Limit - totalPaid;
@@ -84,7 +87,7 @@ namespace BTCPayServer.Controllers
                               AmountFormatted = _currencyNameTable.FormatCurrency(entity.Blob.Amount, blob.Currency),
                               Currency = blob.Currency,
                               Status = entity.Entity.State,
-                              Destination = entity.Blob.Destination,
+                              Destination = entity.Destination.Result,
                               PaymentMethod = PaymentMethodId.Parse(entity.Entity.PaymentMethodId),
                               Link = entity.ProofBlob?.Link,
                               TransactionId = entity.ProofBlob?.Id
